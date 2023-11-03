@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Random Imgur Wall</title>
+    <style type="text/css">
+        body {
+            background-color: #222;
+            color: #868585;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            color: #ec4f4f;
+        }
+        .img-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .img-item {
+            width: 150px;
+            height: 150px;
+            margin: 0;
+            overflow: hidden;
+        }
+        .img-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .load-images {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px;
+            padding: 10px;
+        }
+
+        .load-images input[type="number"] {
+            width: 60px;
+            height: 30px;
+            text-align: center;
+            border: none;
+            background-color: #3b3b3b;
+            color: #fff;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+        .load-images .custom-button {
+            background-color: #ec4f4f;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            height: 30px;
+            margin-left: 10px;
+            display: flex;
+            justify-content: center; /* Center the text horizontally */
+            align-items: center; /* Center the text vertically */
+        }
+
+        .load-images .custom-button:hover {
+            background-color: #d44141;
+        }
+
+        .center-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .load-more-button {
+            background-color: #ec4f4f;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            height: 30px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center; /* Center the text horizontally */
+            align-items: center; /* Center the text vertically */
+        }
+
+        .load-more-button:hover {
+            background-color: #d44141;
+        }
+
+        #dots progress {
+            color: #ec4f4f; /* Change the color to your desired color */
+        }
+
+        #custom-progress {
+        width: 100%;
+        height: 10px; /* Customize the height as needed */
+        background-color: #3b3b3b; /* Background color of the progress bar container */
+        border-radius: 5px; /* Add rounded corners */
+        margin-top: 10px;
+        }
+
+        #custom-progress-bar {
+            width: 0; /* This will change as progress updates */
+            height: 100%;
+            background-color: #ec4f4f; /* Color of the progress bar */
+            border-radius: 5px; /* Add rounded corners */
+        }
+    </style>
+</head>
+<body>
+    <div class="center-content">
+        <div class="load-images">
+            <input type="number" id="imageCount" value="10" min="1" max="100000">
+            <button class="custom-button" onclick="loadImages()">Load Images</button>
+        </div>
+        <div id="dots">
+            Loading <span id="imageCountDisplay">10</span> images [<span id="current"></span>]
+            <div id="custom-progress">
+                <div id="custom-progress-bar"></div>
+            </div>        </div>
+        <div class="img-container" id="image-container"></div>
+        <button class="load-more-button" id="loadMoreImages" style="display: none;" onclick="loadMoreImages()">Load More Images</button>
+    </div>
+
+    <script type="text/javascript">
+        var totalCounter = 0;
+        var initialLoadComplete = false;
+        var imageCountInput = document.getElementById("imageCount");
+        var loadMoreButton = document.getElementById("loadMoreImages");
+        var loadedImageLinks = []; // Array to store loaded image links
+
+        function randomString(string_length) {
+            var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+            var output = "";
+            for (var i = 0; i < string_length; i++) {
+                var index = Math.floor(Math.random() * chars.length);
+                output += chars.substring(index, index + 1);
+            }
+            document.getElementById("current").innerHTML = output;
+            return output;
+        };
+
+        function loadImages() {
+            var imageContainer = document.getElementById("image-container");
+            var imageCountDisplay = document.getElementById("imageCountDisplay");
+            var imageCount = parseInt(imageCountInput.value, 10);
+
+            imageCountDisplay.textContent = imageCount;
+            totalCounter = 0;
+            initialLoadComplete = false;
+            loadMoreButton.style.display = "none";
+            imageContainer.innerHTML = '';
+            loadedImageLinks = []; // Reset the loaded image links
+
+            // Make an HTTP request to the server to retrieve visited links
+            fetch('/visited-links')
+                .then(function (response) {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to retrieve visited links');
+                    }
+                })
+                .then(function (visitedLinks) {
+                    loadedImageLinks = visitedLinks;
+                    loadNextImage(imageCount);
+                })
+                .catch(function (error) {
+                    console.error(error);
+                    loadNextImage(imageCount);
+                });
+        }
+
+        function loadNextImage(imageCount) {
+            if (totalCounter < imageCount) {
+                // Calculate progress percentage based on totalCounter and imageCount
+                var progressPercentage = (totalCounter / imageCount) * 100;
+
+                // Update the width of the custom progress bar
+                document.getElementById("custom-progress-bar").style.width = progressPercentage + "%";
+
+                var randStr = randomString(5);
+                var imgSrc = "http://i.imgur.com/" + randStr + ".jpg";
+
+                if (!loadedImageLinks.includes(imgSrc)) {
+                    var imgObject = new Image();
+
+                    imgObject.onload = function() {
+                        if (this.width != 161 || this.height != 81) {
+                            addImage(this.src);
+                            totalCounter++;
+
+                            if (totalCounter === imageCount) {
+                                initialLoadComplete = true;
+                                loadMoreButton.style.display = "block";
+                            }
+                        }
+                        loadNextImage(imageCount);
+                    }
+
+                    imgObject.src = imgSrc;
+                } else {
+                    // If the image is a duplicate, continue to the next image
+                    loadNextImage(imageCount);
+                }
+            }
+        }
+
+        function loadMoreImages() {
+            if (initialLoadComplete) {
+                var imageCount = parseInt(imageCountInput.value, 10);
+                loadImages(imageCount);
+            }
+        }
+
+        function addImage(imgSrc) {
+            // Make an HTTP request to the server to add the visited link
+            fetch('/add-link', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `url=${encodeURIComponent(imgSrc)}`, // Ensure that imgSrc contains the URL you want to send
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        console.error('Failed to add link to the database');
+                    }
+                })
+                .catch(function (error) {
+                    console.error(error);
+                });
+
+            var imgItem = document.createElement("div");
+            imgItem.classList.add("img-item");
+            var img = document.createElement("img");
+            img.src = imgSrc;
+            imgItem.appendChild(img);
+            document.getElementById("image-container").appendChild(imgItem);
+            loadedImageLinks.push(imgSrc);
+        }
+    </script>
+</body>
+</html>
