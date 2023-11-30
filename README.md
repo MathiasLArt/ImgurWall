@@ -13,4 +13,9 @@ Features:
   ![imgur wall](https://github.com/MathiasLArt/ImgurWall/assets/59111832/4abb9cec-c738-4b38-a6ed-bcd17fea7e62)
 
 
+Requirements:
+
+    - Node.js
+    - Chrome browser
+
 NOTE: this only fetches imgur links, and so may display NSFW content. Use at your own risk.
