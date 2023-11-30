@@ -8,7 +8,7 @@ Features:
 
   - user adjustable amount of mimages to load
   - progress bar
-  - saving of urls so no idtentical images should ever be displayed
+  - saving of urls so no identical images should ever be displayed
 
   ![imgur wall](https://github.com/MathiasLArt/ImgurWall/assets/59111832/4abb9cec-c738-4b38-a6ed-bcd17fea7e62)
 
