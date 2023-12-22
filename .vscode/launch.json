@@ -8,7 +8,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Open ImgurWall.html",
-            "file": "e:\\_Github\\ImgurWall\\ImgurWall.html"
+            "file": "e:\\_Github\\ImgurWall\\RUN.bat"
         }
     ]
 }

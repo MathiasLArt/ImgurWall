@@ -27,7 +27,6 @@ function fetchVisitedLinks() {
 
 async function loadImages() {
     try {
-
         document.title = "Loading Images..."; // Change the title when loading starts
 
         const imageContainer = document.getElementById("image-container");
@@ -44,14 +43,26 @@ async function loadImages() {
         // Make an HTTP request to the server to retrieve visited links
         const visitedLinks = await fetchVisitedLinks();
         loadedImageLinks = visitedLinks;
-        loadNextImage(imageCount);
+
+        const batchSize = 5; // Set your preferred batch size
+        await loadNextImagesBatch(imageCount, batchSize);
     } catch (error) {
         console.error(error);
         loadNextImage(imageCount);
     }
 }
 
-function loadNextImage(imageCount) {
+async function loadNextImagesBatch(imageCount, batchSize) {
+    const promises = [];
+
+    for (let i = 0; i < batchSize; i++) {
+        promises.push(loadNextImage(imageCount));
+    }
+
+    await Promise.all(promises);
+}
+
+async function loadNextImage(imageCount) {
     if (totalCounter < imageCount) {
         // Calculate progress percentage based on totalCounter and imageCount
         var progressPercentage = (totalCounter / imageCount) * 100;
@@ -65,7 +76,7 @@ function loadNextImage(imageCount) {
         if (!loadedImageLinks.includes(imgSrc)) {
             var imgObject = new Image();
 
-            imgObject.onload = function() {
+            imgObject.onload = function () {
                 if (this.width != 161 || this.height != 81) {
                     addImage(this.src);
                     totalCounter++;
@@ -88,7 +99,7 @@ function loadNextImage(imageCount) {
 
 function loadMoreImages() {
     if (initialLoadComplete) {
-        var imageCount = parseInt(imageCountInput.value, 10);
+        var imageCount = parseInt(imageCountInput.value, imageCountInput);
         loadImages(imageCount);
     }
 }
@@ -103,7 +114,7 @@ function addImage(imgSrc) {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: `url=${encodeURIComponent(imgSrc)}`, // Ensure that imgSrc contains the URL you want to send
-        })
+    })
         .then(function (response) {
             if (!response.ok) {
                 console.error('Failed to add link to the database');
